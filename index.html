@@ -1,0 +1,1243 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Profile Cá Nhân Đức Dương - Xem Quẻ</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+    <style>
+      :root {
+        --bg: #ffffff;
+        --text: #000000;
+        --border: #000000;
+        --gray: #f0f0f0;
+        --accent: #ff3e3e;
+        --momo: #e11883;
+        --techcom: #eb1f27;
+        --gold: #ffcc00;
+        --silver: #e0e0e0;
+        --bronze: #cd7f32;
+      }
+      body {
+        background-color: #e5e5f7;
+        background-image:
+          linear-gradient(#d2d2d2 1.5px, transparent 1.5px),
+          linear-gradient(90deg, #d2d2d2 1.5px, transparent 1.5px);
+        background-size: 30px 30px;
+        font-family: "Space Mono", monospace;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-height: 100vh;
+        margin: 0;
+        padding: 40px 0;
+        box-sizing: border-box;
+        overflow-x: hidden;
+      }
+      .profile-card {
+        width: 90%;
+        max-width: 380px;
+        background: var(--bg);
+        border: 3px solid var(--border);
+        box-shadow: 10px 10px 0px var(--border);
+        padding: 30px 20px;
+        text-align: center;
+        z-index: 5;
+        position: relative;
+        animation: cardAppear 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      }
+      @keyframes cardAppear {
+        from {
+          transform: translateY(50px) rotate(-3deg);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0) rotate(0);
+          opacity: 1;
+        }
+      }
+      .avatar {
+        width: 90px;
+        height: 90px;
+        border-radius: 50%;
+        border: 3px solid var(--border);
+        margin: 0 auto 15px;
+        overflow: hidden;
+        background: #fff;
+      }
+      .avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .typing-container {
+        font-size: 13px;
+        color: #555;
+        height: 20px;
+        margin-bottom: 15px;
+      }
+      #cursor {
+        border-left: 7px solid var(--text);
+        animation: blink 0.7s infinite;
+        margin-left: 3px;
+      }
+      @keyframes blink {
+        50% {
+          opacity: 0;
+        }
+      }
+      .stats-container {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 0;
+        margin-bottom: 15px;
+        border-top: 2px dashed var(--border);
+        border-bottom: 2px dashed var(--border);
+      }
+      .stat-item {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      .stat-num {
+        font-weight: bold;
+        font-size: 15px;
+        color: var(--text);
+      }
+      .stat-label {
+        font-size: 9px;
+        color: #555;
+        text-transform: uppercase;
+        margin-top: 3px;
+      }
+      .action-buttons {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+      .follow-btn,
+      .message-btn {
+        flex: 1;
+        font-family: "Space Mono", monospace;
+        font-weight: bold;
+        font-size: 11px;
+        cursor: pointer;
+        text-transform: uppercase;
+        padding: 10px 0;
+        border: 2px solid var(--border);
+        box-shadow: 4px 4px 0px var(--border);
+        transition: 0.1s;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 5px;
+      }
+      .follow-btn {
+        background: var(--accent);
+        color: var(--bg);
+      }
+      .message-btn {
+        background: var(--bg);
+        color: var(--text);
+      }
+      .follow-btn:active,
+      .message-btn:active {
+        transform: translate(2px, 2px);
+        box-shadow: 2px 2px 0px var(--border);
+      }
+      .follow-btn.followed {
+        background: #ccc;
+        color: #666;
+        border-color: #666;
+        box-shadow: none;
+        pointer-events: none;
+        transform: translate(2px, 2px);
+      }
+      .system-info {
+        text-align: left;
+        font-size: 10px;
+        background: #eee;
+        border: 2px solid var(--border);
+        padding: 10px;
+        margin-bottom: 15px;
+        line-height: 1.6;
+      }
+      .vip-board {
+        background: #000;
+        border: 2px solid var(--border);
+        margin-bottom: 20px;
+        position: relative;
+        padding: 10px;
+        color: #fff;
+        text-align: left;
+        box-shadow: 5px 5px 0px var(--accent);
+      }
+      .vip-title {
+        background: var(--accent);
+        color: #fff;
+        font-size: 10px;
+        font-weight: bold;
+        padding: 2px 8px;
+        position: absolute;
+        top: -12px;
+        left: 10px;
+        border: 2px solid #000;
+      }
+      .donor-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 8px;
+        font-size: 11px;
+        background: #222;
+        padding: 5px;
+        border-left: 3px solid #555;
+      }
+      .rank-icon {
+        width: 20px;
+        text-align: center;
+        font-size: 14px;
+      }
+      .rank-1 {
+        color: var(--gold);
+        border-left-color: var(--gold);
+      }
+      .rank-2 {
+        color: var(--silver);
+        border-left-color: var(--silver);
+      }
+      .rank-3 {
+        color: var(--bronze);
+        border-left-color: var(--bronze);
+      }
+      .donor-name {
+        flex: 1;
+        font-weight: bold;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .donor-amount {
+        color: #0f0;
+        font-family: monospace;
+      }
+      .newest-ticker {
+        font-size: 8px;
+        color: #aaa;
+        border-top: 1px solid #333;
+        padding-top: 5px;
+        margin-top: 5px;
+        white-space: nowrap;
+        overflow: hidden;
+      }
+      .social-group {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+      .social-item {
+        width: 35px;
+        height: 35px;
+        border: 2px solid var(--border);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: var(--text);
+        text-decoration: none;
+        transition: 0.2s;
+        font-size: 18px;
+      }
+      .social-item:hover {
+        background: var(--text);
+        color: var(--bg);
+        transform: translate(-2px, -2px);
+        box-shadow: 4px 4px 0px var(--border);
+      }
+      .btn-group {
+        display: flex;
+        gap: 10px;
+      }
+      .main-btn {
+        flex: 1;
+        background: var(--text);
+        color: var(--bg);
+        border: 2px solid var(--text);
+        padding: 12px 5px;
+        font-family: "Space Mono", monospace;
+        font-weight: bold;
+        font-size: 11px;
+        cursor: pointer;
+        text-transform: uppercase;
+        transition: 0.2s;
+      }
+      .main-btn:hover {
+        background: var(--bg);
+        color: var(--text);
+      }
+      .footer {
+        margin-top: 30px;
+        width: 90%;
+        max-width: 380px;
+        text-align: center;
+        z-index: 5;
+      }
+      .footer-tag {
+        background: #000;
+        color: #fff;
+        display: inline-block;
+        padding: 5px 15px;
+        font-size: 10px;
+        font-weight: bold;
+        transform: rotate(-1deg);
+        box-shadow: 4px 4px 0px var(--accent);
+      }
+
+      /* --- CỬA SỔ (WINDOW FIX) --- */
+      .window {
+        display: none;
+        position: fixed;
+        width: 85%;
+        max-width: 340px;
+        background: var(--bg);
+        border: 3px solid var(--border);
+        box-shadow: 8px 8px 0px var(--border);
+        z-index: 100;
+        /* Sửa lỗi mobile: giới hạn chiều cao và cho phép cuộn */
+        max-height: 80vh;
+        overflow: hidden;
+        display: none;
+        flex-direction: column;
+      }
+      .window-header {
+        background: var(--border);
+        color: var(--bg);
+        padding: 8px 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: move;
+        user-select: none;
+        flex-shrink: 0; /* Header không bị thu nhỏ */
+      }
+      .close-btn {
+        background: #000;
+        border: 1px solid #fff;
+        color: #fff;
+        cursor: pointer;
+        font-size: 10px;
+        padding: 2px 6px;
+      }
+      /* Nội dung bên trong có thể cuộn */
+      .vibe-content,
+      .donate-body,
+      .message-body {
+        padding: 20px;
+        text-align: center;
+        overflow-y: auto;
+        flex-grow: 1;
+      }
+
+      .vibe-display {
+        border: 2px solid #000;
+        background: #000;
+        color: #0f0;
+        padding: 15px;
+        margin: 15px 0;
+        min-height: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: bold;
+        line-height: 1.4;
+      }
+      .vibe-btn {
+        background: var(--accent);
+        color: #fff;
+        border: 2px solid #000;
+        padding: 12px;
+        width: 100%;
+        font-family: "Space Mono", monospace;
+        font-weight: bold;
+        cursor: pointer;
+        box-shadow: 4px 4px 0px #000;
+        margin-bottom: 5px;
+      }
+      .marquee-container {
+        background: #eee;
+        border-bottom: 2px solid var(--border);
+        overflow: hidden;
+        padding: 5px 0;
+        flex-shrink: 0;
+      }
+      .marquee-text {
+        display: inline-block;
+        animation: scroll 15s linear infinite;
+        font-size: 10px;
+        font-weight: bold;
+        white-space: nowrap;
+      }
+      @keyframes scroll {
+        from {
+          transform: translateX(100%);
+        }
+        to {
+          transform: translateX(-100%);
+        }
+      }
+      .method-group {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin-bottom: 15px;
+      }
+      .method-btn {
+        cursor: pointer;
+        border: 2px solid var(--border);
+        padding: 8px;
+        background: #fff;
+        box-shadow: 4px 4px 0px var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 80px;
+        height: 45px;
+        transition: 0.1s;
+        filter: grayscale(1);
+        opacity: 0.7;
+      }
+      .method-btn img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+      }
+      .method-btn:hover {
+        opacity: 1;
+        filter: grayscale(0);
+        transform: translate(-1px, -1px);
+        box-shadow: 5px 5px 0px var(--border);
+      }
+      .method-btn.active#btn-bank {
+        filter: grayscale(0);
+        opacity: 1;
+        border-color: var(--techcom);
+        box-shadow: 2px 2px 0px var(--techcom);
+        transform: translate(2px, 2px);
+      }
+      .method-btn.active#btn-momo {
+        filter: grayscale(0);
+        opacity: 1;
+        border-color: var(--momo);
+        box-shadow: 2px 2px 0px var(--momo);
+        transform: translate(2px, 2px);
+      }
+      #qr-section {
+        display: none;
+        border: 2px dashed #000;
+        padding: 15px;
+        background: #f9f9f9;
+        margin-top: 15px;
+      }
+      #qr-image {
+        width: 100%;
+        max-width: 150px;
+      }
+      #toast {
+        visibility: hidden;
+        background: #000;
+        color: #fff;
+        text-align: center;
+        padding: 10px 20px;
+        position: fixed;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 12px;
+        z-index: 1000;
+        border: 2px solid #fff;
+      }
+      #toast.show {
+        visibility: visible;
+        animation: fadeInOut 2.5s;
+      }
+      @keyframes fadeInOut {
+        0%,
+        100% {
+          opacity: 0;
+        }
+        20%,
+        80% {
+          opacity: 1;
+        }
+      }
+      #notice-img {
+        width: 100%;
+        border: 2px solid #000;
+        margin-bottom: 10px;
+        display: none;
+        image-rendering: pixelated;
+      }
+
+      .music-selection-area {
+        margin-top: 15px;
+        border-top: 2px dashed #000;
+        padding-top: 10px;
+        text-align: left;
+      }
+      .music-btn-item {
+        background: #fff;
+        border: 2px solid #000;
+        padding: 6px 10px;
+        margin-bottom: 5px;
+        font-size: 10px;
+        font-family: "Space Mono", monospace;
+        cursor: pointer;
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .music-btn-item:hover {
+        background: #eee;
+      }
+      .music-btn-item.playing {
+        background: #000;
+        color: #fff;
+      }
+
+      .floating-music-btn {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 45px;
+        height: 45px;
+        background: var(--bg);
+        border: 3px solid var(--border);
+        border-radius: 50%;
+        box-shadow: 4px 4px 0px var(--border);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 18px;
+        cursor: pointer;
+        z-index: 99;
+        transition: 0.2s;
+        color: var(--text);
+      }
+      .floating-music-btn:hover {
+        background: var(--text);
+        color: var(--bg);
+        transform: translate(-2px, -2px);
+        box-shadow: 6px 6px 0px var(--border);
+      }
+      .spin-anim i {
+        animation: spin 2s linear infinite;
+      }
+      @keyframes spin {
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="profile-card" onclick="bringToFront(this)">
+      <div class="avatar">
+        <img
+          src="https://i.ibb.co/wFXQJ1VR/z7549754863866-d5304c25f19b782996dcd30237e4df68.jpg"
+          alt="Avatar"
+        />
+      </div>
+      <h2 style="margin: 0 0 5px 0; font-size: 20px">NGUYEN DUC DUONG</h2>
+      <div class="typing-container">
+        <span id="typing"></span><span id="cursor"></span>
+      </div>
+      <div class="stats-container">
+        <div class="stat-item">
+          <span class="stat-num">99%</span
+          ><span class="stat-label">Độ Nhây</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-num" id="followersCount">0</span
+          ><span class="stat-label">Đệ Tử</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-num">∞</span
+          ><span class="stat-label">Năng Lượng</span>
+        </div>
+      </div>
+      <div class="action-buttons">
+        <button class="follow-btn" id="followBtn" onclick="doFollow()">
+          <i class="fa-solid fa-plus"></i> Theo dõi
+        </button>
+        <button
+          class="message-btn"
+          onclick="
+            event.stopPropagation();
+            toggleWindow('messageWindow');
+          "
+        >
+          <i class="fa-solid fa-envelope"></i> Nhắn tin
+        </button>
+      </div>
+      <div class="system-info">
+        <b>> Local:</b> Long An, VN<br />
+        <b>> Born:</b> 2007 (Gen Z chính hiệu)<br />
+        <b>> Mode:</b> Thích thì làm, chán thì ngủ<br />
+        <b>> Status:</b>
+        <span id="ticker-status" style="color: #ff3e3e">ĐANG ĐỢI DONATE</span>
+      </div>
+      <div class="vip-board">
+        <div class="vip-title">TOP "CỨU ĐÓI"</div>
+        <div id="leaderboard-content">
+          <p style="font-size: 9px; text-align: center">Đang kết nối...</p>
+        </div>
+        <div class="newest-ticker" id="latest-donate">
+          <i class="fa-solid fa-rotate"></i> Chờ đại gia tiếp theo...
+        </div>
+      </div>
+      <div class="social-group">
+        <a
+          href="https://www.facebook.com/Duonggneee207"
+          target="_blank"
+          class="social-item"
+          ><i class="fab fa-facebook-f"></i
+        ></a>
+        <a href="https://zalo.me/0348108171" target="_blank" class="social-item"
+          ><i class="fa-solid fa-comment-sms"></i
+        ></a>
+        <a
+          href="https://www.tiktok.com/@duongtoiroiiineeeee"
+          target="_blank"
+          class="social-item"
+          ><i class="fab fa-tiktok"></i
+        ></a>
+        <a
+          href="https://www.instagram.com/duongw_2007"
+          target="_blank"
+          class="social-item"
+          ><i class="fab fa-instagram"></i
+        ></a>
+      </div>
+      <div class="btn-group">
+        <button
+          class="main-btn"
+          style="background: #000; color: #fff"
+          onclick="
+            event.stopPropagation();
+            toggleWindow('vibeWindow');
+          "
+        >
+          Vibe Check 🍀
+        </button>
+        <button
+          class="main-btn"
+          onclick="
+            event.stopPropagation();
+            toggleWindow('donateWindow');
+          "
+        >
+          Donate ☕
+        </button>
+      </div>
+    </div>
+
+    <div class="footer">
+      <div class="footer-tag">DUONG DUC © 2025 | STAY COOL OR STAY HUNGRY</div>
+      <p style="font-size: 9px; margin-top: 10px; color: #666">
+        Thiết kế bởi Dương với 0% sự nghiêm túc.
+      </p>
+    </div>
+
+    <div id="noticeWindow" class="window" onclick="bringToFront(this)">
+      <div
+        class="window-header"
+        style="background: #000; border-bottom: 2px solid var(--accent)"
+      >
+        <span
+          id="adm-title-display"
+          style="font-size: 11px; font-weight: bold; color: var(--accent)"
+        >
+          <i class="fa-solid fa-skull-crossbones"></i> HỆ THỐNG CẢNH BÁO
+        </span>
+        <button class="close-btn" onclick="toggleWindow('noticeWindow')">
+          X
+        </button>
+      </div>
+      <div class="vibe-content" style="background: #fdfdfd">
+        <img id="notice-img" src="" alt="System Meme" />
+        <div
+          id="notice-content"
+          style="
+            font-size: 12px;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            text-align: left;
+            border: 2px solid #000;
+            padding: 10px;
+            background: #fff;
+            box-shadow: 4px 4px 0px #000;
+          "
+        ></div>
+
+        <div id="music-selection" class="music-selection-area">
+          <p style="font-size: 9px; font-weight: bold; margin-bottom: 8px">
+            🎵 CHỌN NHẠC NỀN ĐỂ VÀO:
+          </p>
+          <div id="music-list-container"></div>
+        </div>
+
+        <a
+          id="notice-link-btn"
+          href="#"
+          target="_blank"
+          style="display: none; text-decoration: none"
+        >
+          <button
+            id="notice-btn-text"
+            class="vibe-btn"
+            style="background: #000; color: #fff"
+          >
+            XEM NGAY ✅
+          </button>
+        </a>
+        <button class="vibe-btn" onclick="toggleWindow('noticeWindow')">
+          ĐÃ RÕ LỆNH! ✅
+        </button>
+      </div>
+    </div>
+
+    <div id="vibeWindow" class="window" onclick="bringToFront(this)">
+      <div class="window-header">
+        <span>GIEO QUẺ MAI RỦI</span>
+        <button class="close-btn" onclick="toggleWindow('vibeWindow')">
+          X
+        </button>
+      </div>
+      <div class="vibe-content">
+        <div class="vibe-display" id="vibeResult">Bấm nút để gieo quẻ!</div>
+        <button class="vibe-btn" onclick="checkVibe()">GIEO QUẺ NGAY</button>
+      </div>
+    </div>
+
+    <div id="messageWindow" class="window" onclick="bringToFront(this)">
+      <div class="window-header">
+        <span>NHẮN ĐI CHỜ CHI</span>
+        <button class="close-btn" onclick="toggleWindow('messageWindow')">
+          X
+        </button>
+      </div>
+      <div class="message-body">
+        <p style="font-size: 11px; margin-bottom: 15px">
+          Kết Bạn Đê (Rep Hay Không Tùy !!!):
+        </p>
+        <div class="social-group">
+          <a
+            href="https://www.facebook.com/Duonggneee207"
+            target="_blank"
+            class="social-item"
+            ><i class="fab fa-facebook-f"></i
+          ></a>
+          <a
+            href="https://zalo.me/0348108171"
+            target="_blank"
+            class="social-item"
+            ><i class="fa-solid fa-comment-sms"></i
+          ></a>
+        </div>
+      </div>
+    </div>
+
+    <div id="donateWindow" class="window" onclick="bringToFront(this)">
+      <div class="window-header">
+        <span>DONATE CHO DƯƠNG</span>
+        <button class="close-btn" onclick="toggleWindow('donateWindow')">
+          X
+        </button>
+      </div>
+      <div class="marquee-container">
+        <div class="marquee-text">
+          Đừng để Dương đói - Hãy donate một ly cà phê - Cảm ơn!!!
+        </div>
+      </div>
+      <div class="donate-body">
+        <div class="method-group">
+          <div id="btn-bank" class="method-btn" onclick="showQR('bank')">
+            <img
+              src="https://i.ibb.co/G31P13xH/tech.png"
+            />
+          </div>
+          <div id="btn-momo" class="method-btn" onclick="showQR('momo')">
+            <img src="https://i.ibb.co/5XFPkg1v/t-i-xu-ng-Photoroom.png" />
+          </div>
+        </div>
+        <div id="qr-section">
+          <img id="qr-image" src="" />
+          <p
+            id="account-info"
+            style="
+              font-size: 10px;
+              font-weight: bold;
+              white-space: pre-line;
+              margin-top: 10px;
+            "
+          ></p>
+          <button class="vibe-btn" style="font-size: 10px" onclick="copySTK()">
+            COPY STK / SỐ ĐT
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div
+      class="floating-music-btn"
+      id="floatMusicBtn"
+      onclick="toggleWindow('musicWindow')"
+    >
+      <i class="fa-solid fa-music"></i>
+    </div>
+
+    <div id="musicWindow" class="window" onclick="bringToFront(this)">
+      <div class="window-header">
+        <span><i class="fa-solid fa-compact-disc"></i> TRÌNH PHÁT NHẠC</span>
+        <button class="close-btn" onclick="toggleWindow('musicWindow')">
+          X
+        </button>
+      </div>
+      <div class="vibe-content">
+        <div
+          id="music-list-container-mini"
+          class="music-selection-area"
+          style="margin-top: 0; border-top: none"
+        ></div>
+      </div>
+    </div>
+
+    <div id="toast">Đã sao chép! (CK Lẹ Đi !!!)</div>
+
+    <script>
+      const firebaseConfig = {
+        apiKey: "AIzaSyBagaDN9X-YYrSm-6rcsY4ds3s_2xKSvZ8",
+        authDomain: "myprofile-8cec5.firebaseapp.com",
+        databaseURL:
+          "https://myprofile-8cec5-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "myprofile-8cec5",
+        storageBucket: "myprofile-8cec5.firebasestorage.app",
+        messagingSenderId: "943743953894",
+        appId: "1:943743953894:web:0b37c8bfab614592ce4427",
+      };
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.database();
+
+      // Đồng bộ số lượng đệ tử (Chỉ hiển thị theo Admin chỉnh)
+      function syncDisciples() {
+        db.ref("stats/disciples").on("value", (snapshot) => {
+          const count = snapshot.val() || "0";
+          const el = document.getElementById("disciplesCount");
+          if (el) el.innerText = count;
+        });
+      }
+
+      // CHỈNH SỬA: Đồng bộ Follower (Vừa lấy số Admin chỉnh, vừa cho người dùng tăng)
+      function syncFollowers() {
+        db.ref("stats/followers").on("value", (snapshot) => {
+          const count = snapshot.val() || 0;
+          const displayEl = document.getElementById("followersCount");
+          if (displayEl) {
+            // Hiển thị số rút gọn K nếu lớn hơn 1000
+            displayEl.innerText =
+              count >= 1000 ? (count / 1000).toFixed(1) + "K" : count;
+          }
+        });
+      }
+
+      // CHỈNH SỬA: Khi người dùng ấn nút Follow
+      function doFollow() {
+        const btn = document.getElementById("followBtn");
+        if (btn.classList.contains("followed")) return;
+
+        // Tăng trực tiếp vào biến stats/followers trên Database
+        // Như vậy Admin chỉnh 1000, người dùng ấn sẽ lên 1001
+        db.ref("stats/followers").transaction((current) => {
+          return (current || 0) + 1;
+        });
+
+        btn.innerHTML = `<i class="fa-solid fa-check"></i> Đã theo dõi`;
+        btn.classList.add("followed");
+        localStorage.setItem("hasFollowed", "true");
+      }
+
+      function syncDonates() {
+        db.ref("donates").on("value", (snapshot) => {
+          let list = [];
+          snapshot.forEach((child) => {
+            list.push(child.val());
+          });
+          list.sort((a, b) => b.amount - a.amount);
+          let html = "";
+          const icons = ["fa-trophy", "fa-medal", "fa-award"];
+          const ranks = ["rank-1", "rank-2", "rank-3"];
+          list.slice(0, 3).forEach((item, index) => {
+            html += `<div class="donor-row ${ranks[index]}"><div class="rank-icon"><i class="fa-solid ${icons[index]}"></i></div><div class="donor-name">${item.name}</div><div class="donor-amount">${Number(item.amount).toLocaleString()}đ</div></div>`;
+          });
+          document.getElementById("leaderboard-content").innerHTML =
+            html ||
+            '<p style="font-size: 9px; text-align: center">Chưa có "cứu trợ" nào</p>';
+        });
+
+        db.ref("stats/latestDonate").on("value", (snapshot) => {
+          if (snapshot.val())
+            document.getElementById("latest-donate").innerHTML =
+              `<i class="fa-solid fa-rotate"></i> Vừa nhận: ${snapshot.val()}`;
+        });
+
+        db.ref("stats/tickerColor").on("value", (snapshot) => {
+          if (snapshot.val())
+            document.getElementById("ticker-status").style.color =
+              snapshot.val();
+        });
+      }
+
+      let currentAudio = null;
+      function syncPlaylist() {
+        db.ref("playlist").on("value", (snapshot) => {
+          const data = snapshot.val();
+          const containerNotice = document.getElementById(
+            "music-list-container",
+          );
+          const containerMini = document.getElementById(
+            "music-list-container-mini",
+          );
+
+          containerNotice.innerHTML = "";
+          containerMini.innerHTML = "";
+
+          if (data) {
+            Object.keys(data).forEach((key) => {
+              const song = data[key];
+              const btnNotice = document.createElement("button");
+              btnNotice.className = "music-btn-item";
+              btnNotice.dataset.url = song.url;
+              btnNotice.innerHTML = `<span>${song.name}</span> <i class="fa-solid fa-play"></i>`;
+              btnNotice.onclick = () => playMusic(song.url);
+              containerNotice.appendChild(btnNotice);
+
+              const btnMini = document.createElement("button");
+              btnMini.className = "music-btn-item";
+              btnMini.dataset.url = song.url;
+              btnMini.innerHTML = `<span>${song.name}</span> <i class="fa-solid fa-play"></i>`;
+              btnMini.onclick = () => playMusic(song.url);
+              containerMini.appendChild(btnMini);
+            });
+          }
+
+          const stopHTML = `<span>TẮT NHẠC (YÊN TĨNH)</span> <i class="fa-solid fa-volume-xmark"></i>`;
+          const stopBtn1 = document.createElement("button");
+          stopBtn1.className = "music-btn-item";
+          stopBtn1.style.background = "#555";
+          stopBtn1.style.color = "#fff";
+          stopBtn1.innerHTML = stopHTML;
+          stopBtn1.onclick = stopMusic;
+          containerNotice.appendChild(stopBtn1);
+
+          const stopBtn2 = document.createElement("button");
+          stopBtn2.className = "music-btn-item";
+          stopBtn2.style.background = "#555";
+          stopBtn2.style.color = "#fff";
+          stopBtn2.innerHTML = stopHTML;
+          stopBtn2.onclick = stopMusic;
+          containerMini.appendChild(stopBtn2);
+        });
+      }
+
+      function stopMusic() {
+        if (currentAudio) {
+          currentAudio.pause();
+          currentAudio.currentTime = 0;
+        }
+        document
+          .querySelectorAll(".music-btn-item")
+          .forEach((b) => b.classList.remove("playing"));
+        const floatBtn = document.getElementById("floatMusicBtn");
+        floatBtn.classList.remove("spin-anim");
+        floatBtn.innerHTML = '<i class="fa-solid fa-music"></i>';
+      }
+
+      function playMusic(url) {
+        if (currentAudio) {
+          currentAudio.pause();
+          currentAudio.currentTime = 0;
+        }
+        currentAudio = new Audio(url);
+        currentAudio.loop = true;
+        currentAudio
+          .play()
+          .catch((e) => console.log("Cần tương tác để phát nhạc"));
+
+        document.querySelectorAll(".music-btn-item").forEach((b) => {
+          b.classList.remove("playing");
+          if (b.dataset.url === url) b.classList.add("playing");
+        });
+
+        const floatBtn = document.getElementById("floatMusicBtn");
+        floatBtn.classList.add("spin-anim");
+        floatBtn.innerHTML = '<i class="fa-solid fa-compact-disc"></i>';
+
+        const t = document.getElementById("toast");
+        t.innerText = "Đã bật nhạc! Quẩy thôiiii...";
+        t.className = "show";
+        setTimeout(() => (t.className = ""), 2500);
+      }
+
+      function syncAnnouncement() {
+        db.ref("announcement").on("value", (snapshot) => {
+          const data = snapshot.val();
+          if (!data) return;
+          document.getElementById("adm-title-display").innerHTML =
+            `<i class="fa-solid fa-bell"></i> ${data.title || "THÔNG BÁO"}`;
+          document.getElementById("notice-content").innerHTML = data.text || "";
+          const imgEl = document.getElementById("notice-img");
+          if (data.imageUrl) {
+            imgEl.src = data.imageUrl;
+            imgEl.style.display = "block";
+          } else {
+            imgEl.style.display = "none";
+          }
+          const btnLink = document.getElementById("notice-link-btn");
+          const btnText = document.getElementById("notice-btn-text");
+          if (data.btnText && data.btnUrl) {
+            btnText.innerText = data.btnText;
+            btnLink.href = data.btnUrl;
+            btnLink.style.display = "block";
+          } else {
+            btnLink.style.display = "none";
+          }
+          if (data.show === true) {
+            const win = document.getElementById("noticeWindow");
+            win.style.display = "flex";
+            if (!win.style.left) {
+              win.style.left = "50%";
+              win.style.top = "50%";
+              win.style.transform = "translate(-50%, -50%)";
+            }
+            bringToFront(win);
+          } else {
+            document.getElementById("noticeWindow").style.display = "none";
+          }
+        });
+      }
+
+      const phrases = [
+        "Chào mừng tới căn cứ của Dương!",
+        "Website này làm để chơi thôi hì hì",
+        "Mãi Yêuuuuuuuuuuu........ !",
+        "Đừng quên follow và donate cho Dương nhé!",
+      ];
+      let i = 0,
+        j = 0,
+        isDeleting = false;
+      function loop() {
+        const char = phrases[i];
+        j = isDeleting ? j - 1 : j + 1;
+        document.getElementById("typing").innerHTML = char.substring(0, j);
+        if (!isDeleting && j === char.length) {
+          isDeleting = true;
+          setTimeout(loop, 2000);
+        } else if (isDeleting && j === 0) {
+          isDeleting = false;
+          i = (i + 1) % phrases.length;
+          setTimeout(loop, 500);
+        } else {
+          setTimeout(loop, isDeleting ? 50 : 100);
+        }
+      }
+
+      const vibes = [
+        "Vận may: 100% - Nhặt được 5k!",
+        "Tình duyên: 0% - Học bài đi.",
+        "Cảnh báo: Mẹ đang cầm chổi.",
+        "Quẻ tốt: Crush sẽ rep tin nhắn!",
+        "Quẻ xui: Donate 500k lẹ cho Dương cấm bỏ qua!",
+        "Quẻ Thượng: Hôm nay bạn đẹp trai/xinh gái lạ lùng, nhìn gương ít thôi kẻo tự luyến.",
+        "Quẻ Đại Cát: Crush định rep tin nhắn bạn rồi, nhưng thấy bạn 'đần' quá nên lại thôi.",
+        "Cảnh báo: Ví tiền của bạn đang biểu tình đòi đình công vì quá lép xẹp.",
+        "Quẻ Bình Hòa: Không có gì đặc biệt, ngoài việc bạn vẫn chưa giàu.",
+        "Quẻ Hung: Ra đường nhớ nhìn trước ngó sau, kẻo va phải tình yêu sét đánh lại khổ.",
+        "Quẻ Đặc Biệt: Hôm nay Dương đẹp trai quá, bạn nên donate ngay để giải xui.",
+        "Tử vi: Bạn sẽ gặp một người rất quan trọng... đó là chú giao hàng Shipper.",
+        "Quẻ Cực Phẩm: Mọi rắc rối của bạn sẽ biến mất... nếu bạn đi ngủ ngay bây giờ.",
+        "Lưu ý: Đừng tin vào cái quẻ này, mình code ra để tấu hài thôi!",
+        "Quẻ Vô Tri: 1 + 1 = 2, và bạn vẫn đang độc thân. Trùng hợp chưa?",
+        "Tin vui: Bạn sắp nhận được một khoản tiền lớn... từ việc nằm mơ.",
+        "Cảnh báo: Người yêu cũ đang vào xem trang cá nhân của bạn kìa. Bình tĩnh!",
+      ];
+      function checkVibe() {
+        const res = document.getElementById("vibeResult");
+        res.innerHTML = "Đang gieo quẻ...";
+        setTimeout(() => {
+          res.innerHTML =
+            ">> " + vibes[Math.floor(Math.random() * vibes.length)];
+        }, 600);
+      }
+
+      let topZ = 200;
+      function toggleWindow(id) {
+        const win = document.getElementById(id);
+        if (win.style.display !== "flex") {
+          win.style.display = "flex";
+          if (!win.style.left) {
+            win.style.left = "50%";
+            win.style.top = "50%";
+            win.style.transform = "translate(-50%, -50%)";
+          }
+          bringToFront(win);
+        } else {
+          win.style.display = "none";
+        }
+      }
+
+      function bringToFront(el) {
+        topZ++;
+        el.style.zIndex = topZ;
+      }
+
+      function makeDraggable(windowEl) {
+        const header = windowEl.querySelector(".window-header");
+        let p1 = 0,
+          p2 = 0,
+          p3 = 0,
+          p4 = 0;
+        header.onmousedown = (e) => {
+          e.preventDefault();
+          bringToFront(windowEl);
+          if (windowEl.style.transform) {
+            const r = windowEl.getBoundingClientRect();
+            windowEl.style.transform = "none";
+            windowEl.style.left = r.left + "px";
+            windowEl.style.top = r.top + "px";
+          }
+          p3 = e.clientX;
+          p4 = e.clientY;
+          document.onmouseup = () => {
+            document.onmouseup = null;
+            document.onmousemove = null;
+          };
+          document.onmousemove = (e) => {
+            p1 = p3 - e.clientX;
+            p2 = p4 - e.clientY;
+            p3 = e.clientX;
+            p4 = e.clientY;
+            windowEl.style.top = windowEl.offsetTop - p2 + "px";
+            windowEl.style.left = windowEl.offsetLeft - p1 + "px";
+          };
+        };
+        header.ontouchstart = (e) => {
+          bringToFront(windowEl);
+          if (windowEl.style.transform) {
+            const r = windowEl.getBoundingClientRect();
+            windowEl.style.transform = "none";
+            windowEl.style.left = r.left + "px";
+            windowEl.style.top = r.top + "px";
+          }
+          p3 = e.touches[0].clientX;
+          p4 = e.touches[0].clientY;
+          document.ontouchend = () => {
+            document.ontouchend = null;
+            document.ontouchmove = null;
+          };
+          document.ontouchmove = (e) => {
+            p1 = p3 - e.touches[0].clientX;
+            p2 = p4 - e.touches[0].clientY;
+            p3 = e.touches[0].clientX;
+            p4 = e.touches[0].clientY;
+            windowEl.style.top = windowEl.offsetTop - p2 + "px";
+            windowEl.style.left = windowEl.offsetLeft - p1 + "px";
+          };
+        };
+      }
+
+      const donateData = {
+        bank: {
+          stk: "1907 4852 4940 12",
+          name: "TECHCOMBANK\nNGUYEN DUC DUONG",
+          qr: "https://i.ibb.co/Sh773br/z7549751813319-1975fcf97f595d07796bf65457c2aee0.jpg",
+        },
+        momo: {
+          stk: "0348108171",
+          name: "MOMO\nNGUYEN DUC DUONG",
+          qr: "https://i.ibb.co/jPDKv0DC/z7549753170529-4889834a2ba7921a1510e25886f86bfc.jpg",
+        },
+      };
+      let currentMethod = "bank";
+      function showQR(m) {
+        currentMethod = m;
+        document.getElementById("qr-section").style.display = "block";
+        document.getElementById("qr-image").src = donateData[m].qr;
+        document.getElementById("account-info").innerText =
+          donateData[m].name + "\n" + donateData[m].stk;
+        document
+          .querySelectorAll(".method-btn")
+          .forEach((b) => b.classList.remove("active"));
+        document.getElementById("btn-" + m).classList.add("active");
+      }
+      function copySTK() {
+        navigator.clipboard
+          .writeText(donateData[currentMethod].stk)
+          .then(() => {
+            const t = document.getElementById("toast");
+            t.className = "show";
+            setTimeout(() => (t.className = ""), 2500);
+          });
+      }
+
+      window.onload = () => {
+        loop();
+        syncFollowers();
+        syncDisciples();
+        syncDonates();
+        syncAnnouncement();
+        syncPlaylist();
+        document.querySelectorAll(".window").forEach(makeDraggable);
+        if (localStorage.getItem("hasFollowed") === "true") {
+          const b = document.getElementById("followBtn");
+          b.innerHTML = `<i class="fa-solid fa-check"></i> Đã theo dõi`;
+          b.classList.add("followed");
+        }
+      };
+      // Hàm tự động cập nhật Favicon từ Firebase
+      function syncFavicon() {
+        db.ref("profile/favicon").on("value", (snapshot) => {
+          const faviconUrl = snapshot.val();
+          if (faviconUrl) {
+            // Tìm thẻ link icon cũ hoặc tạo mới nếu chưa có
+            let link =
+              document.querySelector("link[rel*='icon']") ||
+              document.createElement("link");
+            link.type = "image/x-icon";
+            link.rel = "shortcut icon";
+            link.href = faviconUrl;
+            document.getElementsByTagName("head")[0].appendChild(link);
+          }
+        });
+      }
+
+      // Gọi hàm này khi trang web tải xong
+      window.addEventListener("load", () => {
+        syncFavicon();
+      });
+    </script>
+  </body>
+</html>
